@@ -1,0 +1,5 @@
+build/
+inputs/
+outputs/
+tools/*
+!tools/*.cob
