@@ -1,0 +1,33 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. LOAD-TRAN.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT IN-FILE ASSIGN TO INPUTFILE
+               ORGANIZATION IS LINE SEQUENTIAL.
+           SELECT OUT-FILE ASSIGN TO OUTPUTFILE
+               ORGANIZATION IS INDEXED
+               ACCESS MODE IS RANDOM
+               RECORD KEY IS OUT-KEY.
+       DATA DIVISION.
+       FILE SECTION.
+       FD IN-FILE.
+       01 IN-REC PIC X(350).
+       FD OUT-FILE.
+       01 OUT-REC.
+           05 OUT-KEY PIC X(16).
+           05 OUT-DATA PIC X(334).
+       WORKING-STORAGE SECTION.
+       01 EOF-FLAG PIC X VALUE 'N'.
+       PROCEDURE DIVISION.
+           OPEN INPUT IN-FILE OUTPUT OUT-FILE
+           PERFORM UNTIL EOF-FLAG = 'Y'
+               READ IN-FILE
+                   AT END MOVE 'Y' TO EOF-FLAG
+                   NOT AT END
+                       MOVE IN-REC TO OUT-REC
+                       WRITE OUT-REC
+               END-READ
+           END-PERFORM
+           CLOSE IN-FILE OUT-FILE
+           GOBACK.

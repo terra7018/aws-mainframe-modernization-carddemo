@@ -1,0 +1,33 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. DUMP-XREF.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT IN-FILE ASSIGN TO INPUTFILE
+               ORGANIZATION IS INDEXED
+               ACCESS MODE IS SEQUENTIAL
+               RECORD KEY IS IN-KEY.
+           SELECT OUT-FILE ASSIGN TO OUTPUTFILE
+               ORGANIZATION IS LINE SEQUENTIAL.
+       DATA DIVISION.
+       FILE SECTION.
+       FD IN-FILE.
+       01 IN-REC.
+           05 IN-KEY PIC X(16).
+           05 IN-DATA PIC X(34).
+       FD OUT-FILE.
+       01 OUT-REC PIC X(50).
+       WORKING-STORAGE SECTION.
+       01 EOF-FLAG PIC X VALUE 'N'.
+       PROCEDURE DIVISION.
+           OPEN INPUT IN-FILE OUTPUT OUT-FILE
+           PERFORM UNTIL EOF-FLAG = 'Y'
+               READ IN-FILE
+                   AT END MOVE 'Y' TO EOF-FLAG
+                   NOT AT END
+                       MOVE IN-REC TO OUT-REC
+                       WRITE OUT-REC
+               END-READ
+           END-PERFORM
+           CLOSE IN-FILE OUT-FILE
+           GOBACK.
