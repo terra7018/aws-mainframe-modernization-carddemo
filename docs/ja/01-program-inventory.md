@@ -1,0 +1,80 @@
+# プログラム一覧
+
+`app/cbl` の 31 プログラムを、ソースヘッダーの機能説明と実際の参照から
+整理しました。`Files` は `ASSIGN` または CICS のファイル名、`Copybooks`
+はソースの `COPY`、`Calls/遷移先` はリテラルの CALL/XCTL 先です。CICS
+transaction ID は `app/csd/CARDDEMO.CSD` の `DEFINE TRANSACTION` から取得し、
+batch の JCL は `app/jcl` の `EXEC PGM` から対応付けました。
+
+## メインアプリケーション
+
+| Program | 種別 | ヘッダーの機能 | Files | Copybooks | Calls/遷移先 | CICS transaction | 起動 JCL |
+|---|---|---|---|---|---|---|---|
+| CBACT01C | BATCH | account file を読み files に書く | ACCTFILE, ARRYFILE, OUTFILE, VBRCFILE | CODATECN, CVACT01Y | CEE3ABD, COBDATFT | — | READACCT.jcl |
+| CBACT02C | BATCH | card data file を読み印刷 | CARDFILE | CVACT02Y | CEE3ABD | — | READCARD.jcl |
+| CBACT03C | BATCH | account cross-reference file を読み印刷 | XREFFILE | CVACT03Y | CEE3ABD | — | READXREF.jcl |
+| CBACT04C | BATCH | interest calculator | ACCTFILE, DISCGRP, TCATBALF, TRANSACT, XREFFILE | CVACT01Y, CVACT03Y, CVTRA01Y, CVTRA02Y, CVTRA05Y | CEE3ABD | — | INTCALC.jcl |
+| CBCUS01C | BATCH | customer data file を読み印刷 | CUSTFILE | CVCUS01Y | CEE3ABD | — | READCUST.jcl |
+| CBEXPORT | BATCH | branch migration 用 customer data export | ACCTFILE, CARDFILE, CUSTFILE, EXPFILE, TRANSACT, XREFFILE | CVACT01Y, CVACT02Y, CVACT03Y, CVCUS01Y, CVEXPORT, CVTRA05Y | CEE3ABD | — | CBEXPORT.jcl |
+| CBIMPORT | BATCH | migration export を normalized files に分割 import | ACCTOUT, CARDOUT, CUSTOUT, ERROUT, EXPFILE, TRNXOUT, XREFOUT | CVACT01Y, CVACT02Y, CVACT03Y, CVCUS01Y, CVEXPORT, CVTRA05Y | CEE3ABD | — | CBIMPORT.jcl |
+| CBSTM03B | BATCH subroutine | statement 用 transaction file processing | ACCTFILE, CUSTFILE, TRNXFILE, XREFFILE | — | — | — | — |
+| CBTRN01C | BATCH | daily transaction を post | ACCTFILE, CARDFILE, CUSTFILE, DALYTRAN, TRANFILE, XREFFILE | CVACT01Y, CVACT02Y, CVACT03Y, CVCUS01Y, CVTRA05Y, CVTRA06Y | CEE3ABD | — | — |
+| CBTRN02C | BATCH | daily transaction を post | ACCTFILE, DALYREJS, DALYTRAN, TCATBALF, TRANFILE, XREFFILE | CVACT01Y, CVACT03Y, CVTRA01Y, CVTRA05Y, CVTRA06Y | CEE3ABD | — | POSTTRAN.jcl |
+| CBTRN03C | BATCH | transaction detail report を印刷 | CARDXREF, DATEPARM, TRANCATG, TRANFILE, TRANREPT, TRANTYPE | CVACT03Y, CVTRA03Y, CVTRA04Y, CVTRA05Y, CVTRA07Y | CEE3ABD | — | TRANREPT.jcl |
+| COBSWAIT | BATCH utility | centiseconds 指定で待機 | — | — | MVSWAIT | — | WAITSTEP.jcl |
+| CBSTM03A | BATCH | transaction data から statement を作成 | HTMLFILE, STMTFILE | COSTM01, CUSTREC, CVACT01Y, CVACT03Y | CBSTM03B, CEE3ABD | — | CREASTMT.JCL |
+| COACTUPC | CICS online | account update request を処理 | LIT-ACCTFILENAME, LIT-CUSTFILENAME | COACTUP, COCOM01Y, COTTL01Y, CSDAT01Y, CSLKPCDY, CSMSG01Y, CSMSG02Y, CSSETATY, CSUSR01Y, CSUTLDPY, CVACT01Y, CVACT03Y, CVCRD01Y, CVCUS01Y | `CDEMO-TO-PROGRAM` | CAUP | — |
+| COACTVWC | CICS online | account view request を処理 | — | COACTVW, COCOM01Y, COTTL01Y, CSDAT01Y, CSMSG01Y, CSMSG02Y, CSUSR01Y, CVACT01Y, CVACT02Y, CVACT03Y, CVCRD01Y, CVCUS01Y | `CDEMO-TO-PROGRAM` | CAVW | — |
+| COADM01C | CICS online | admin user の admin menu | — | COADM01, COADM02Y, COCOM01Y, CSDAT01Y, CSMSG01Y, CSUSR01Y, DFHAID, DFHBMSCA | `CDEMO-ADMIN-OPT-PGMNAME`, `CDEMO-TO-PROGRAM` | CA00 | — |
+| COBIL00C | CICS online | bill payment と online transaction | — | COBIL00, COCOM01Y, COTTL01Y, CSDAT01Y, CSMSG01Y, CVACT01Y, CVACT03Y, CVTRA05Y, DFHAID, DFHBMSCA | COMEN01C, COSGN00C | CB00 | — |
+| COCRDLIC | CICS online | credit card の一覧 | LIT-CARD-FILE | COCOM01Y, COCRDLI, COTTL01Y, CSDAT01Y, CSMSG01Y, CSUSR01Y, CVACT02Y, CVCRD01Y, DFHAID, DFHBMSCA | `LIT-MENUPGM`, `CCARD-NEXT-PROG` | CCLI | — |
+| COCRDSLC | CICS online | credit card detail request を処理 | LIT-CARDFILENAME, LIT-CARDFILENAME-ACCT-PATH | COCOM01Y, COCRDSL, COTTL01Y, CSDAT01Y, CSMSG01Y, CSMSG02Y, CSUSR01Y, CVACT02Y, CVCRD01Y, CVCUS01Y, DFHAID, DFHBMSCA | `CDEMO-TO-PROGRAM` | CCDL | — |
+| COCRDUPC | CICS online | credit card detail request を更新 | LIT-CARDFILENAME | COCOM01Y, COCRDUP, COTTL01Y, CSDAT01Y, CSMSG01Y, CSMSG02Y, CSUSR01Y, CVACT02Y, CVCRD01Y, CVCUS01Y, DFHAID, DFHBMSCA | `CDEMO-TO-PROGRAM` | CCUP | — |
+| COMEN01C | CICS online | regular user の main menu | — | COCOM01Y, COMEN01, COMEN02Y, COTTL01Y, CSDAT01Y, CSMSG01Y, CSUSR01Y, DFHAID, DFHBMSCA | `CDEMO-MENU-OPT-PGMNAME`, `CDEMO-TO-PROGRAM` | CM00 | — |
+| CORPT00C | CICS online | online から batch report job を submit | — | COCOM01Y, CORPT00, COTTL01Y, CSDAT01Y, CSMSG01Y, CVTRA05Y, DFHAID, DFHBMSCA | CSUTLDTC, COMEN01C, COSGN00C | CR00 | — |
+| COSGN00C | CICS online | CardDemo signon screen | — | COCOM01Y, COSGN00, COTTL01Y, CSDAT01Y, CSMSG01Y, CSUSR01Y, DFHAID, DFHBMSCA | COADM01C, COMEN01C | CC00 | — |
+| COTRN00C | CICS online | TRANSACT の transaction 一覧 | — | COCOM01Y, COTRN00, COTTL01Y, CSDAT01Y, CSMSG01Y, CVTRA05Y, DFHAID, DFHBMSCA | COMEN01C, COSGN00C, COTRN01C | CT00 | — |
+| COTRN01C | CICS online | TRANSACT の transaction 表示 | — | COCOM01Y, COTRN01, COTTL01Y, CSDAT01Y, CSMSG01Y, CVTRA05Y, DFHAID, DFHBMSCA | COMEN01C, COSGN00C, COTRN00C | CT01 | — |
+| COTRN02C | CICS online | TRANSACT に新規 transaction を追加 | — | COCOM01Y, COTRN02, COTTL01Y, CSDAT01Y, CSMSG01Y, CVACT01Y, CVACT03Y, CVTRA05Y, DFHAID, DFHBMSCA | CSUTLDTC, COMEN01C, COSGN00C | CT02 | — |
+| COUSR00C | CICS online | USRSEC の全 user 一覧 | — | COCOM01Y, COTTL01Y, COUSR00, CSDAT01Y, CSMSG01Y, CSUSR01Y, DFHAID, DFHBMSCA | COADM01C, COSGN00C, COUSR02C, COUSR03C | CU00 | — |
+| COUSR01C | CICS online | regular/admin user の追加 | — | COCOM01Y, COTTL01Y, COUSR01, CSDAT01Y, CSMSG01Y, CSUSR01Y, DFHAID, DFHBMSCA | COADM01C, COSGN00C | CU01 | — |
+| COUSR02C | CICS online | USRSEC user の更新 | — | COCOM01Y, COTTL01Y, COUSR02, CSDAT01Y, CSMSG01Y, CSUSR01Y, DFHAID, DFHBMSCA | COADM01C, COSGN00C | CU02 | — |
+| COUSR03C | CICS online | USRSEC user の削除 | — | COCOM01Y, COTTL01Y, COUSR03, CSDAT01Y, CSMSG01Y, CSUSR01Y, DFHAID, DFHBMSCA | COADM01C, COSGN00C | CU03 | — |
+| CSUTLDTC | 共通 utility | CEEDAYS 呼び出しの日付 utility | — | — | CEEDAYS | — | — |
+
+`COACTUPC` など一部のソースは `LIT-*` のファイル定数を経由して CICS
+file を参照します。CSD には `COCRDSEC`/`CDV1` も定義されていますが、
+対応するソースは `app/cbl` にありません。逆に、`COACTUPC` の CSD 定義は
+`CAUP` です。transaction ID はプログラム名から推測せず、CSD の対応を
+優先しています。
+
+## サブアプリケーション
+
+### `app-authorization-ims-db2-mq`
+
+| Program | 種別/役割 | 主な依存 | CSD transaction / JCL |
+|---|---|---|---|
+| CBPAUP0C | BATCH/authorization posting | `CCPAU*`, `CIPAUDTY`, `IMSFUNCS`、IMS PSB/DB | — / CBPAUP0J.jcl |
+| COPAUA0C | CICS online authorization summary | COPAU00 map、`CCPAU*` | CP00 / — |
+| COPAUS0C | CICS online authorization search | COPAU00/COPAU01 map、`CCPAU*` | CPVS / — |
+| COPAUS1C | CICS online authorization detail | COPAU01 map、`CCPAU*` | CPVD / — |
+| COPAUS2C | CICS online authorization helper/update | `CCPAU*` | CSD は CPVD の program 定義 |
+| DBUNLDGS | BATCH/DB unload | IMS DBD/PSB、`PA*` copybook | — / UNLDGSAM.JCL |
+| PAUDBLOD | BATCH/DB load | IMS DB/`PAUTBPCB` | — / LOADPADB.JCL |
+| PAUDBUNL | BATCH/DB unload | IMS DB/`PAUTBPCB` | — / UNLDPADB.JCL |
+
+`CRDDEMO2.csd` は CP00→COPAUA0C、CPVS→COPAUS0C、CPVD→COPAUS1C を
+定義し、`CPVD` に DB2ENTRY/DB2TRAN も定義します。MQ、IMS DBD/PSB、
+DB2 DCL/DDL はこのサブアプリの外部構成です。
+
+### `app-transaction-type-db2`
+
+| Program | 種別/役割 | 主な依存 | CSD transaction / JCL |
+|---|---|---|---|
+| COTRTLIC | CICS online transaction type inquiry | COTRTLI map、CSDB2RPY/CSDB2RWY | CTLI / — |
+| COTRTUPC | CICS online transaction type maintenance | COTRTUP map、CSDB2RPY/CSDB2RWY | CTTU / — |
+| COBTUPDT | DB2 update helper | CSDB2RPY/CSDB2RWY、DB2 tables | — / MNTTRDB2.jcl |
+
+`CRDDEMOD.csd` は CTLI→COTRTLIC、CTTU→COTRTUPC と DB2TRAN
+(`CTLITRAN`/`CTTUTRAN`) を定義します。実際の SQL/table 定義は
+`ddl/TRNTYPE.ddl`、`ddl/TRNTYCAT.ddl` と `dcl/` にあります。
