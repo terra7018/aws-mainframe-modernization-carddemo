@@ -1,0 +1,28 @@
+name: posttran-java
+
+on:
+  push:
+    paths:
+      - "modernization/posttran-java/**"
+      - "app/data/ASCII/**"
+      - ".github/workflows/posttran-java.yml"
+  pull_request:
+    paths:
+      - "modernization/posttran-java/**"
+      - "app/data/ASCII/**"
+      - ".github/workflows/posttran-java.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: modernization/posttran-java
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - run: mvn -B -q test
