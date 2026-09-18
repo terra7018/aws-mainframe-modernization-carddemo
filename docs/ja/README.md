@@ -19,4 +19,4 @@ VSAM KSDS、JCL バッチ、BMS map、CICS の CSD 定義で構成され、取�
 `app/cpy` の PIC 定義、`app/jcl` の EXEC/DD、`app/csd` とサブアプリの
 CSD を実際に読み取って作成しました。データ辞書の offset/length は PIC
 句からプログラムで計算し、CBTRN02C の実行結果は
-`/home/ubuntu/carddemo-baseline` の GnuCOBOL ベースラインを使用しています。
+`modernization/cobol-baseline/` の GnuCOBOL ベースライン harness で取得しています。

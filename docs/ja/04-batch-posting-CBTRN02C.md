@@ -118,14 +118,12 @@ description/amount/merchant/card/original timestamp を `TRAN-RECORD` に
 | post-run ACCTFILE | 50 records |
 | post-run TCATBALF | 100 records |
 
-再現用の compiler と実行資料は `/home/ubuntu/carddemo-baseline/README.md`
-および `run_baseline.sh` にあります。Compiler は
+再現用の GnuCOBOL ベースライン harness は `modernization/cobol-baseline/`
+（`run_baseline.sh`）にあります。Compiler は
 `cobc (GnuCOBOL) 3.1.2.0`、compile command は次の通りです。
 
 ```bash
-cobc -x -I app/cpy -fsign=EBCDIC \
-  -o /home/ubuntu/carddemo-baseline/build/CBTRN02C \
-  app/cbl/CBTRN02C.cbl
+cobc -x -I app/cpy -fsign=EBCDIC -o build/CBTRN02C app/cbl/CBTRN02C.cbl
 ```
 
 実行時は `DD_DALYTRAN`、`DD_TRANFILE`、`DD_XREFFILE`、`DD_DALYREJS`、
